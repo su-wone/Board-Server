@@ -97,6 +97,25 @@
       ]
     }
   },
-  "hotPaths": [],
+  "hotPaths": [
+    {
+      "path": "prisma/prisma.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1774414932471,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 1,
+      "lastAccessed": 1774414939370,
+      "type": "file"
+    },
+    {
+      "path": "prisma/schema.prisma",
+      "accessCount": 1,
+      "lastAccessed": 1774414943727,
+      "type": "file"
+    }
+  ],
   "userDirectives": []
 }
