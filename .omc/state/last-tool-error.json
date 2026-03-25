@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"git branch \\\"chore/VEASLY-387-Nesejs-환경설정\\\" 2>&1\",\"description\":\"Test creating branch with Korean characters\"}",
+  "error": "Exit code 128\nfatal: not a valid object name: 'main'",
+  "timestamp": "2026-03-25T04:29:13.598Z",
+  "retry_count": 1
+}
