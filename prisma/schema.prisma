@@ -8,8 +8,18 @@ datasource db {
 }
 
 model Memo {
+  id         Int         @id @default(autoincrement())
+  text       String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  memoImages MemoImage[]
+}
+
+model MemoImage {
   id        Int      @id @default(autoincrement())
-  text      String
+  url       String
+  order     Int      @default(0)
+  memoId    Int
+  memo      Memo     @relation(fields: [memoId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
