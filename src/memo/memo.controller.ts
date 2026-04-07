@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UploadedFiles, UseInterceptors, ParseIntPipe } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { MemoService } from './memo.service.js';
 import { UploadService } from '../upload/upload.service.js';
@@ -25,8 +25,8 @@ export class MemoController {
     }
 
     @Patch(':id')
-    update(@Param('id') id: string, @Body('text') text: string) {
-        return this.memoService.update(Number(id), text);
+    update(@Param('id', ParseIntPipe) id: number, @Body('text') text: string) {
+        return this.memoService.update(id, text);
     }
 
     @Delete(':id')

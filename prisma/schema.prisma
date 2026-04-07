@@ -7,19 +7,107 @@ datasource db {
   provider = "postgresql"
 }
 
-model Memo {
-  id         Int         @id @default(autoincrement())
-  text       String
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  memoImages MemoImage[]
+model Memos {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  deletedAt DateTime? @db.Timestamptz(3)
+
+  text String
+
+  memoImages MemoImages[]
 }
 
-model MemoImage {
-  id        Int      @id @default(autoincrement())
-  url       String
-  order     Int      @default(0)
-  memoId    Int
-  memo      Memo     @relation(fields: [memoId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+model MemoImages {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  deletedAt DateTime? @db.Timestamptz(3)
+
+  url    String
+  order  Int    @default(0)
+  memoId Int
+
+  memo Memos @relation(fields: [memoId], references: [id], onDelete: Cascade)
+}
+
+model Users {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  deletedAt DateTime? @db.Timestamptz(3)
+
+  name  String
+  email String @unique
+
+  assignedCards Cards[] @relation("CardAssignee")
+  reportedCards Cards[] @relation("CardReporter")
+}
+
+model Sprints {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  deletedAt DateTime? @db.Timestamptz(3)
+
+  title     String
+  status    String   @default("planned")
+  startDate DateTime @db.Timestamptz(3)
+  endDate   DateTime @db.Timestamptz(3)
+
+  cards Cards[]
+}
+
+model Workflow {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  deletedAt DateTime? @db.Timestamptz(3)
+
+  title String
+  order Int
+
+  cards Cards[]
+}
+
+model Cards {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  deletedAt DateTime? @db.Timestamptz(3)
+
+  workflowId  Int
+  sprintId    Int?
+  assigneeId  Int?
+  reporterId  Int?
+  parentId    Int?
+  key         String    @unique
+  type        String    @default("task")
+  title       String
+  description String?
+  order       Int
+  dueDate     DateTime? @db.Timestamptz(3)
+  priority    String    @default("medium")
+  storyPoint  Int?
+
+  workflow Workflow @relation(fields: [workflowId], references: [id])
+  sprint   Sprints? @relation(fields: [sprintId], references: [id])
+  assignee Users?   @relation("CardAssignee", fields: [assigneeId], references: [id])
+  reporter Users?   @relation("CardReporter", fields: [reporterId], references: [id])
+  parent   Cards?   @relation("CardToCard", fields: [parentId], references: [id])
+  children Cards[]  @relation("CardToCard")
+
+  labels Labels[]
+}
+
+model Labels {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  deletedAt DateTime? @db.Timestamptz(3)
+
+  name  String
+  color String
+
+  cards Cards[]
 }
