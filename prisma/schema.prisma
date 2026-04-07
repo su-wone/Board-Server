@@ -58,7 +58,7 @@ model Sprints {
   cards Cards[]
 }
 
-model Workflow {
+model Workflows {
   id        Int       @id @default(autoincrement())
   createdAt DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt DateTime  @updatedAt @db.Timestamptz(3)
@@ -90,12 +90,12 @@ model Cards {
   priority    String    @default("medium")
   storyPoint  Int?
 
-  workflow Workflow @relation(fields: [workflowId], references: [id])
-  sprint   Sprints? @relation(fields: [sprintId], references: [id])
-  assignee Users?   @relation("CardAssignee", fields: [assigneeId], references: [id])
-  reporter Users?   @relation("CardReporter", fields: [reporterId], references: [id])
-  parent   Cards?   @relation("CardToCard", fields: [parentId], references: [id])
-  children Cards[]  @relation("CardToCard")
+  workflow Workflows @relation(fields: [workflowId], references: [id])
+  sprint   Sprints?  @relation(fields: [sprintId], references: [id])
+  assignee Users?    @relation("CardAssignee", fields: [assigneeId], references: [id])
+  reporter Users?    @relation("CardReporter", fields: [reporterId], references: [id])
+  parent   Cards?    @relation("CardToCard", fields: [parentId], references: [id])
+  children Cards[]   @relation("CardToCard")
 
   labels Labels[]
 }
