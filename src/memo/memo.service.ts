@@ -6,7 +6,7 @@ export class MemoService {
     constructor(private prisma: PrismaService) { }
 
     findAll() {
-        return this.prisma.memo.findMany({
+        return this.prisma.memos.findMany({
             include: { memoImages: { orderBy: { order: 'asc' } } },
         });
     }
@@ -15,7 +15,7 @@ export class MemoService {
         if (imageUrls.length > 5) {
             throw new BadRequestException('이미지는 최대 5개까지 가능합니다');
         }
-        return this.prisma.memo.create({
+        return this.prisma.memos.create({
             data: {
                 text,
                 memoImages: {
@@ -27,15 +27,15 @@ export class MemoService {
     }
 
     update(id: number, text: string) {
-        return this.prisma.memo.update({ where: { id }, data: { text } });
+        return this.prisma.memos.update({ where: { id }, data: { text } });
     }
 
     remove(id: number) {
-        return this.prisma.memo.delete({ where: { id } });
+        return this.prisma.memos.delete({ where: { id } });
     }
 
     async addImages(memoId: number, imageUrls: string[]) {
-        const memo = await this.prisma.memo.findUnique({
+        const memo = await this.prisma.memos.findUnique({
             where: { id: memoId },
             include: { memoImages: true },
         });
@@ -48,7 +48,7 @@ export class MemoService {
                 `이미지는 최대 5개까지 가능합니다 (현재 ${currentCount}개)`,
             );
         }
-        return this.prisma.memo.update({
+        return this.prisma.memos.update({
             where: { id: memoId },
             data: {
                 memoImages: {
@@ -63,6 +63,6 @@ export class MemoService {
     }
 
     removeImage(imageId: number) {
-        return this.prisma.memoImage.delete({ where: { id: imageId } });
+        return this.prisma.memoImages.delete({ where: { id: imageId } });
     }
 }
