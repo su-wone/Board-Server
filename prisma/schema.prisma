@@ -7,6 +7,25 @@ datasource db {
   provider = "postgresql"
 }
 
+enum SprintStatus {
+  PLANNED
+  IN_PROGRESS
+  DONE
+}
+
+enum CardType {
+  TASK
+  STORY
+  BUG
+  EPIC
+}
+
+enum CardPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model Memos {
   id        Int       @id @default(autoincrement())
   createdAt DateTime  @default(now()) @db.Timestamptz(3)
@@ -29,6 +48,8 @@ model MemoImages {
   memoId Int
 
   memo Memos @relation(fields: [memoId], references: [id], onDelete: Cascade)
+
+  @@index([memoId])
 }
 
 model Users {
@@ -51,9 +72,9 @@ model Sprints {
   deletedAt DateTime? @db.Timestamptz(3)
 
   title     String
-  status    String   @default("planned")
-  startDate DateTime @db.Timestamptz(3)
-  endDate   DateTime @db.Timestamptz(3)
+  status    SprintStatus @default(PLANNED)
+  startDate DateTime?    @db.Timestamptz(3)
+  endDate   DateTime?    @db.Timestamptz(3)
 
   cards Cards[]
 }
@@ -81,23 +102,29 @@ model Cards {
   assigneeId  Int?
   reporterId  Int?
   parentId    Int?
-  key         String    @unique
-  type        String    @default("task")
+  key         String       @unique
+  type        CardType     @default(TASK)
   title       String
   description String?
   order       Int
-  dueDate     DateTime? @db.Timestamptz(3)
-  priority    String    @default("medium")
+  dueDate     DateTime?    @db.Timestamptz(3)
+  priority    CardPriority @default(MEDIUM)
   storyPoint  Int?
 
-  workflow Workflows @relation(fields: [workflowId], references: [id])
-  sprint   Sprints?  @relation(fields: [sprintId], references: [id])
-  assignee Users?    @relation("CardAssignee", fields: [assigneeId], references: [id])
-  reporter Users?    @relation("CardReporter", fields: [reporterId], references: [id])
-  parent   Cards?    @relation("CardToCard", fields: [parentId], references: [id])
+  workflow Workflows @relation(fields: [workflowId], references: [id], onDelete: Restrict)
+  sprint   Sprints?  @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+  assignee Users?    @relation("CardAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  reporter Users?    @relation("CardReporter", fields: [reporterId], references: [id], onDelete: SetNull)
+  parent   Cards?    @relation("CardToCard", fields: [parentId], references: [id], onDelete: SetNull)
   children Cards[]   @relation("CardToCard")
 
   labels Labels[]
+
+  @@index([workflowId])
+  @@index([sprintId])
+  @@index([assigneeId])
+  @@index([reporterId])
+  @@index([parentId])
 }
 
 model Labels {
@@ -106,7 +133,7 @@ model Labels {
   updatedAt DateTime  @updatedAt @db.Timestamptz(3)
   deletedAt DateTime? @db.Timestamptz(3)
 
-  name  String
+  name  String @unique
   color String
 
   cards Cards[]
