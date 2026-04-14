@@ -50,6 +50,7 @@ model Sprints {
   status    SprintStatus @default(PLANNED)
   startDate DateTime?    @db.Timestamptz(3)
   endDate   DateTime?    @db.Timestamptz(3)
+  goal      String?
 
   cards Cards[]
 }
