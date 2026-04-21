@@ -86,7 +86,7 @@ async function main() {
         const nextOrder = (orderMap.get(groupKey) ?? 0) + 1;
         orderMap.set(groupKey, nextOrder);
 
-        const card = await prisma.cards.create({
+        await prisma.cards.create({
             data: {
                 title: seed.title,
                 workflowId: seed.workflowId,
@@ -94,12 +94,7 @@ async function main() {
                 type: seed.type,
                 priority: seed.priority,
                 order: nextOrder,
-                key: '__tmp__',
             },
-        });
-        await prisma.cards.update({
-            where: { id: card.id },
-            data: { key: `BOARD-${card.id}` },
         });
     }
 

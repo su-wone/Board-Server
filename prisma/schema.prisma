@@ -78,7 +78,6 @@ model Cards {
   assigneeId  Int?
   reporterId  Int?
   parentId    Int?
-  key         String       @unique
   type        CardType     @default(TASK)
   title       String
   description String?
