@@ -1,6 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service.js';
 
+const SPRINT_SELECT = {
+    id: true,
+    title: true,
+    status: true,
+    startDate: true,
+    endDate: true,
+    _count: {
+        select: {
+            cards: { where: { deletedAt: null } },
+        },
+    },
+} as const;
+
 @Injectable()
 export class SprintsService {
     constructor(private prisma: PrismaService) { }
@@ -9,13 +22,7 @@ export class SprintsService {
         const sprints = await this.prisma.sprints.findMany({
             where: { deletedAt: null },
             orderBy: { startDate: 'asc' },
-            include: {
-                _count: {
-                    select: {
-                        cards: { where: { deletedAt: null } },
-                    },
-                },
-            },
+            select: SPRINT_SELECT,
         });
 
         return sprints.map(({ _count, ...sprint }) => ({
@@ -27,13 +34,7 @@ export class SprintsService {
     async findOne(id: number) {
         const sprint = await this.prisma.sprints.findFirst({
             where: { id, deletedAt: null },
-            include: {
-                _count: {
-                    select: {
-                        cards: { where: { deletedAt: null } },
-                    },
-                },
-            },
+            select: SPRINT_SELECT,
         });
 
         if (!sprint) {

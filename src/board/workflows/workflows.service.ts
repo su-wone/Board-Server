@@ -9,6 +9,7 @@ export class WorkflowsService {
         return this.prisma.workflows.findMany({
             where: { deletedAt: null },
             orderBy: { order: 'asc' },
+            select: { id: true, title: true },
         });
     }
 }
