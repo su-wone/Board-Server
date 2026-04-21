@@ -1,0 +1,87 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service.js';
+import { CreateCardDto } from './dto/create-card.dto.js';
+import { CardsFilterDto } from './dto/cards-filter.dto.js';
+import { CardType, Prisma } from '../../../generated/prisma/client.js';
+
+@Injectable()
+export class CardsService {
+    constructor(private prisma: PrismaService) { }
+
+    async findAll(filter: CardsFilterDto) {
+        const where: Prisma.CardsWhereInput = {
+            deletedAt: null,
+        };
+
+        if (filter.sprintId === 'null') {
+            where.sprintId = null;
+        } else if (filter.sprintId !== undefined) {
+            where.sprintId = Number(filter.sprintId);
+        }
+
+        const cards = await this.prisma.cards.findMany({
+            where,
+            orderBy: [{ workflowId: 'asc' }, { order: 'asc' }],
+            select: {
+                id: true,
+                title: true,
+                type: true,
+                priority: true,
+                workflowId: true,
+                sprintId: true,
+            },
+        });
+
+        return cards.map((c) => ({ ...c, key: `BOARD-${c.id}` }));
+    }
+
+    async create(dto: CreateCardDto) {
+        const workflow = await this.prisma.workflows.findFirst({
+            where: { id: dto.workflowId, deletedAt: null },
+        });
+        if (!workflow) {
+            throw new NotFoundException(`workflowId ${dto.workflowId} not found`);
+        }
+
+        if (dto.sprintId !== null) {
+            const sprint = await this.prisma.sprints.findFirst({
+                where: { id: dto.sprintId, deletedAt: null },
+            });
+            if (!sprint) {
+                throw new NotFoundException(`sprintId ${dto.sprintId} not found`);
+            }
+        }
+
+        const max = await this.prisma.cards.aggregate({
+            where: {
+                workflowId: dto.workflowId,
+                sprintId: dto.sprintId,
+                deletedAt: null,
+            },
+            _max: { order: true },
+        });
+        const nextOrder = (max._max.order ?? 0) + 1;
+
+        const created = await this.prisma.cards.create({
+            data: {
+                title: dto.title,
+                workflowId: dto.workflowId,
+                sprintId: dto.sprintId,
+                type: dto.type ?? CardType.STORY,
+                priority: dto.priority ?? 'MEDIUM',
+                order: nextOrder,
+            },
+            select: {
+                id: true,
+                title: true,
+                type: true,
+                priority: true,
+                workflowId: true,
+                sprintId: true,
+            },
+        });
+
+
+        return { ...created, key: `BOARD-${created.id}` };
+    }
+}
