@@ -8,15 +8,36 @@ const prisma = new PrismaClient({
 
 async function main() {
     await prisma.$executeRawUnsafe(
-        'TRUNCATE TABLE "Cards", "Sprints", "Workflows" RESTART IDENTITY CASCADE',
+        'TRUNCATE TABLE "Cards", "Sprints" RESTART IDENTITY CASCADE',
     );
 
-    const [todo, inProgress, review, done] = await Promise.all([
-        prisma.workflows.create({ data: { title: 'To Do', order: 1 } }),
-        prisma.workflows.create({ data: { title: 'In Progress', order: 2 } }),
-        prisma.workflows.create({ data: { title: 'Review', order: 3 } }),
-        prisma.workflows.create({ data: { title: 'Done', order: 4 } }),
-    ]);
+    const workflowTitles = [
+        'TO DO',
+        'DESIGN IN PROGRESS',
+        'READY FOR DEV',
+        'IN PROGRESS',
+        'READY FOR QA',
+        'READY FOR RELEASE',
+        'DONE',
+    ];
+
+    const workflowRecords = await Promise.all(
+        workflowTitles.map(async (title, order) => {
+            const existing = await prisma.workflows.findFirst({
+                where: { title, deletedAt: null },
+            });
+            if (existing) {
+                return prisma.workflows.update({
+                    where: { id: existing.id },
+                    data: { order },
+                });
+            }
+            return prisma.workflows.create({ data: { title, order } });
+        }),
+    );
+
+    const [todo, designInProgress, readyForDev, inProgress, readyForQa, readyForRelease, done] =
+        workflowRecords;
 
     const day = 24 * 60 * 60 * 1000;
     const now = Date.now();
@@ -57,18 +78,19 @@ async function main() {
     };
 
     const seeds: Seed[] = [
-        // Sprint 23 (DONE) — 전부 Done workflow
+        // Sprint 23 (DONE)
         { title: '로그인 화면 리뉴얼', workflowId: done.id, sprintId: sprintDone.id, type: 'STORY', priority: 'HIGH' },
         { title: 'OAuth 토큰 갱신 버그', workflowId: done.id, sprintId: sprintDone.id, type: 'BUG', priority: 'HIGH' },
         { title: '회원가입 이메일 인증', workflowId: done.id, sprintId: sprintDone.id, type: 'STORY', priority: 'MEDIUM' },
 
-        // Sprint 24 (IN_PROGRESS) — 각 workflow에 분배
-        { title: '대시보드 스키마 설계', workflowId: done.id, sprintId: sprintActive.id, type: 'TASK', priority: 'HIGH' },
-        { title: 'Cards 조회 API', workflowId: review.id, sprintId: sprintActive.id, type: 'TASK', priority: 'HIGH' },
+        // Sprint 24 (IN_PROGRESS) — workflow 전반에 분배
+        { title: '대시보드 스키마 설계', workflowId: readyForRelease.id, sprintId: sprintActive.id, type: 'TASK', priority: 'HIGH' },
+        { title: 'Cards 조회 API', workflowId: readyForQa.id, sprintId: sprintActive.id, type: 'TASK', priority: 'HIGH' },
         { title: '보드 드래그앤드롭 UI', workflowId: inProgress.id, sprintId: sprintActive.id, type: 'STORY', priority: 'MEDIUM' },
         { title: '스프린트 필터 구현', workflowId: inProgress.id, sprintId: sprintActive.id, type: 'TASK', priority: 'MEDIUM' },
-        { title: '카드 상세 모달', workflowId: todo.id, sprintId: sprintActive.id, type: 'STORY', priority: 'MEDIUM' },
-        { title: '레이블 필터 사이드바', workflowId: todo.id, sprintId: sprintActive.id, type: 'TASK', priority: 'LOW' },
+        { title: '카드 상세 모달', workflowId: readyForDev.id, sprintId: sprintActive.id, type: 'STORY', priority: 'MEDIUM' },
+        { title: '레이블 필터 사이드바', workflowId: designInProgress.id, sprintId: sprintActive.id, type: 'TASK', priority: 'LOW' },
+        { title: '온보딩 플로우 와이어프레임', workflowId: todo.id, sprintId: sprintActive.id, type: 'STORY', priority: 'LOW' },
 
         // Sprint 25 (PLANNED) — 전부 To Do
         { title: '알림 시스템 설계', workflowId: todo.id, sprintId: sprintPlanned.id, type: 'EPIC', priority: 'HIGH' },
@@ -99,7 +121,7 @@ async function main() {
     }
 
     console.log('Seed complete:', {
-        workflows: 4,
+        workflows: workflowRecords.length,
         sprints: 3,
         cards: seeds.length,
     });
