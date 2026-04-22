@@ -32,7 +32,7 @@ export class CardsService {
             },
         });
 
-        return cards.map((c) => ({ ...c, key: `BOARD-${c.id}` }));
+        return cards.map((c) => ({ ...c, key: `VEASLY-${c.id}` }));
     }
 
     async create(dto: CreateCardDto) {
@@ -82,6 +82,6 @@ export class CardsService {
         });
 
 
-        return { ...created, key: `BOARD-${created.id}` };
+        return { ...created, key: `VEASLY-${created.id}` };
     }
 }
