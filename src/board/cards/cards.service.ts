@@ -37,6 +37,7 @@ export class CardsService {
                 reporter: { select: { id: true, name: true } },
                 labels: { select: { id: true, name: true, color: true } },
                 workflow: { select: { id: true, title: true } },
+                epic: { select: { id: true, name: true, color: true } },
             },
         });
 
@@ -61,6 +62,7 @@ export class CardsService {
                 reporter: { select: { id: true, name: true } },
                 labels: { select: { id: true, name: true, color: true } },
                 workflow: { select: { id: true, title: true } },
+                epic: { select: { id: true, name: true, color: true } },
                 parent: { select: { id: true, title: true, type: true } },
                 children: { select: { id: true, title: true, type: true } },
             },

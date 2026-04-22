@@ -78,6 +78,7 @@ model Cards {
   assigneeId  Int?
   reporterId  Int?
   parentId    Int?
+  epicId      Int?
   type        CardType     @default(TASK)
   title       String
   description String?
@@ -92,6 +93,7 @@ model Cards {
   reporter Users?    @relation("CardReporter", fields: [reporterId], references: [id], onDelete: SetNull)
   parent   Cards?    @relation("CardToCard", fields: [parentId], references: [id], onDelete: SetNull)
   children Cards[]   @relation("CardToCard")
+  epic     Epic?     @relation(fields: [epicId], references: [id], onDelete: SetNull)
 
   labels Labels[]
 
@@ -100,6 +102,17 @@ model Cards {
   @@index([assigneeId])
   @@index([reporterId])
   @@index([parentId])
+  @@index([epicId])
+}
+
+model Epic {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  name  String
+  color String
+
+  cards Cards[]
 }
 
 model Labels {

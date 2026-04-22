@@ -8,8 +8,20 @@ const prisma = new PrismaClient({
 
 async function main() {
     await prisma.$executeRawUnsafe(
-        'TRUNCATE TABLE "Cards", "Sprints" RESTART IDENTITY CASCADE',
+        'TRUNCATE TABLE "Cards", "Sprints", "Epic" RESTART IDENTITY CASCADE',
     );
+
+    const epicSamples = [
+        { name: '인증 리뉴얼', color: 'lavender' },
+        { name: '보드 코어', color: 'teal' },
+        { name: '모바일 대응', color: 'orange' },
+        { name: '관측성', color: 'purple' },
+    ];
+
+    const epics = await Promise.all(
+        epicSamples.map((data) => prisma.epic.create({ data })),
+    );
+    const [epicAuth, epicBoard, epicMobile] = epics;
 
     const workflowTitles = [
         'TO DO',
@@ -75,26 +87,27 @@ async function main() {
         sprintId: number | null;
         type: 'EPIC' | 'STORY' | 'TASK' | 'SUB_TASK' | 'BUG';
         priority: 'LOW' | 'MEDIUM' | 'HIGH';
+        epicId?: number | null;
     };
 
     const seeds: Seed[] = [
         // Sprint 23 (DONE)
-        { title: '로그인 화면 리뉴얼', workflowId: done.id, sprintId: sprintDone.id, type: 'STORY', priority: 'HIGH' },
-        { title: 'OAuth 토큰 갱신 버그', workflowId: done.id, sprintId: sprintDone.id, type: 'BUG', priority: 'HIGH' },
-        { title: '회원가입 이메일 인증', workflowId: done.id, sprintId: sprintDone.id, type: 'STORY', priority: 'MEDIUM' },
+        { title: '로그인 화면 리뉴얼', workflowId: done.id, sprintId: sprintDone.id, type: 'STORY', priority: 'HIGH', epicId: epicAuth.id },
+        { title: 'OAuth 토큰 갱신 버그', workflowId: done.id, sprintId: sprintDone.id, type: 'BUG', priority: 'HIGH', epicId: epicAuth.id },
+        { title: '회원가입 이메일 인증', workflowId: done.id, sprintId: sprintDone.id, type: 'STORY', priority: 'MEDIUM', epicId: epicAuth.id },
 
         // Sprint 24 (IN_PROGRESS) — workflow 전반에 분배
-        { title: '대시보드 스키마 설계', workflowId: readyForRelease.id, sprintId: sprintActive.id, type: 'TASK', priority: 'HIGH' },
-        { title: 'Cards 조회 API', workflowId: readyForQa.id, sprintId: sprintActive.id, type: 'TASK', priority: 'HIGH' },
-        { title: '보드 드래그앤드롭 UI', workflowId: inProgress.id, sprintId: sprintActive.id, type: 'STORY', priority: 'MEDIUM' },
-        { title: '스프린트 필터 구현', workflowId: inProgress.id, sprintId: sprintActive.id, type: 'TASK', priority: 'MEDIUM' },
-        { title: '카드 상세 모달', workflowId: readyForDev.id, sprintId: sprintActive.id, type: 'STORY', priority: 'MEDIUM' },
+        { title: '대시보드 스키마 설계', workflowId: readyForRelease.id, sprintId: sprintActive.id, type: 'TASK', priority: 'HIGH', epicId: epicBoard.id },
+        { title: 'Cards 조회 API', workflowId: readyForQa.id, sprintId: sprintActive.id, type: 'TASK', priority: 'HIGH', epicId: epicBoard.id },
+        { title: '보드 드래그앤드롭 UI', workflowId: inProgress.id, sprintId: sprintActive.id, type: 'STORY', priority: 'MEDIUM', epicId: epicBoard.id },
+        { title: '스프린트 필터 구현', workflowId: inProgress.id, sprintId: sprintActive.id, type: 'TASK', priority: 'MEDIUM', epicId: epicBoard.id },
+        { title: '카드 상세 모달', workflowId: readyForDev.id, sprintId: sprintActive.id, type: 'STORY', priority: 'MEDIUM', epicId: epicBoard.id },
         { title: '레이블 필터 사이드바', workflowId: designInProgress.id, sprintId: sprintActive.id, type: 'TASK', priority: 'LOW' },
         { title: '온보딩 플로우 와이어프레임', workflowId: todo.id, sprintId: sprintActive.id, type: 'STORY', priority: 'LOW' },
 
         // Sprint 25 (PLANNED) — 전부 To Do
         { title: '알림 시스템 설계', workflowId: todo.id, sprintId: sprintPlanned.id, type: 'EPIC', priority: 'HIGH' },
-        { title: '모바일 반응형 대응', workflowId: todo.id, sprintId: sprintPlanned.id, type: 'STORY', priority: 'MEDIUM' },
+        { title: '모바일 반응형 대응', workflowId: todo.id, sprintId: sprintPlanned.id, type: 'STORY', priority: 'MEDIUM', epicId: epicMobile.id },
 
         // Backlog (sprintId: null)
         { title: '성능 모니터링 대시보드', workflowId: todo.id, sprintId: null, type: 'EPIC', priority: 'LOW' },
@@ -116,6 +129,7 @@ async function main() {
                 type: seed.type,
                 priority: seed.priority,
                 order: nextOrder,
+                epicId: seed.epicId ?? null,
             },
         });
     }
@@ -123,6 +137,7 @@ async function main() {
     console.log('Seed complete:', {
         workflows: workflowRecords.length,
         sprints: 3,
+        epics: epics.length,
         cards: seeds.length,
     });
 }
