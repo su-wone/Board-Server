@@ -29,6 +29,14 @@ export class CardsService {
                 priority: true,
                 workflowId: true,
                 sprintId: true,
+                description: true,
+                dueDate: true,
+                storyPoint: true,
+                order: true,
+                assignee: { select: { id: true, name: true } },
+                reporter: { select: { id: true, name: true } },
+                labels: { select: { id: true, name: true, color: true } },
+                workflow: { select: { id: true, title: true } },
             },
         });
 
