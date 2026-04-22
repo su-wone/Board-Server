@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CardsService } from './cards.service.js';
 import { CardsFilterDto } from './dto/cards-filter.dto.js';
@@ -13,6 +13,12 @@ export class CardsController {
     @Get()
     findAll(@Query() query: CardsFilterDto) {
         return this.cardsService.findAll(query);
+    }
+
+    @ApiOperation({ summary: '카드 단건 조회' })
+    @Get(':id')
+    findOne(@Param('id', ParseIntPipe) id: number) {
+        return this.cardsService.findOne(id);
     }
 
     @ApiOperation({ summary: '카드 생성' })

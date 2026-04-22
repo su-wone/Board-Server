@@ -43,6 +43,36 @@ export class CardsService {
         return cards.map((c) => ({ ...c, key: `VEASLY-${c.id}` }));
     }
 
+    async findOne(id: number) {
+        const card = await this.prisma.cards.findFirst({
+            where: { id, deletedAt: null },
+            select: {
+                id: true,
+                title: true,
+                type: true,
+                priority: true,
+                workflowId: true,
+                sprintId: true,
+                description: true,
+                dueDate: true,
+                storyPoint: true,
+                order: true,
+                assignee: { select: { id: true, name: true } },
+                reporter: { select: { id: true, name: true } },
+                labels: { select: { id: true, name: true, color: true } },
+                workflow: { select: { id: true, title: true } },
+                parent: { select: { id: true, title: true, type: true } },
+                children: { select: { id: true, title: true, type: true } },
+            },
+        });
+
+        if (!card) {
+            throw new NotFoundException(`card id ${id} not found`);
+        }
+
+        return { ...card, key: `VEASLY-${card.id}` };
+    }
+
     async create(dto: CreateCardDto) {
         const workflow = await this.prisma.workflows.findFirst({
             where: { id: dto.workflowId, deletedAt: null },
