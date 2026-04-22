@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service.js';
 import { CreateCardDto } from './dto/create-card.dto.js';
 import { CardsFilterDto } from './dto/cards-filter.dto.js';
-import { CardType, Prisma } from '../../../generated/prisma/client.js';
+import { Prisma } from '../../../generated/prisma/client.js';
 
 @Injectable()
 export class CardsService {
@@ -92,6 +92,15 @@ export class CardsService {
             }
         }
 
+        if (dto.epicId !== undefined) {
+            const epic = await this.prisma.epic.findUnique({
+                where: { id: dto.epicId },
+            });
+            if (!epic) {
+                throw new NotFoundException(`epicId ${dto.epicId} not found`);
+            }
+        }
+
         const max = await this.prisma.cards.aggregate({
             where: {
                 workflowId: dto.workflowId,
@@ -107,8 +116,9 @@ export class CardsService {
                 title: dto.title,
                 workflowId: dto.workflowId,
                 sprintId: dto.sprintId,
-                type: dto.type ?? CardType.STORY,
+                type: dto.type,
                 priority: dto.priority ?? 'MEDIUM',
+                epicId: dto.epicId,
                 order: nextOrder,
             },
             select: {
@@ -118,9 +128,9 @@ export class CardsService {
                 priority: true,
                 workflowId: true,
                 sprintId: true,
+                epicId: true,
             },
         });
-
 
         return { ...created, key: `VEASLY-${created.id}` };
     }

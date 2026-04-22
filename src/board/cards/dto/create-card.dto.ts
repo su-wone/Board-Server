@@ -26,4 +26,8 @@ export class CreateCardDto {
     @IsOptional()
     @IsIn(CARD_PRIORITIES)
     priority?: CardPriority;
+
+    @IsOptional()
+    @IsInt()
+    epicId?: number;
 }
