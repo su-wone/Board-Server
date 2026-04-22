@@ -48,6 +48,12 @@ async function main() {
         }),
     );
 
+    // Cards were truncated above, so drop any legacy workflow rows whose
+    // title isn't part of the new 7-stage pipeline.
+    await prisma.workflows.deleteMany({
+        where: { title: { notIn: workflowTitles } },
+    });
+
     const [todo, designInProgress, readyForDev, inProgress, readyForQa, readyForRelease, done] =
         workflowRecords;
 
