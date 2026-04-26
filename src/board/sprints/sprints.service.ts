@@ -25,8 +25,9 @@ export class SprintsService {
             select: SPRINT_SELECT,
         });
 
-        return sprints.map(({ _count, ...sprint }) => ({
+        return sprints.map(({ _count, title, ...sprint }) => ({
             ...sprint,
+            name: title,
             cardCount: _count.cards,
         }));
     }
@@ -41,7 +42,7 @@ export class SprintsService {
             throw new NotFoundException('스프린트를 찾을 수 없습니다');
         }
 
-        const { _count, ...rest } = sprint;
-        return { ...rest, cardCount: _count.cards };
+        const { _count, title, ...rest } = sprint;
+        return { ...rest, name: title, cardCount: _count.cards };
     }
 }

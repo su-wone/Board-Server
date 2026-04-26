@@ -14,7 +14,7 @@ const sprintSchema = {
     type: 'object',
     properties: {
         id: { type: 'number', example: 1 },
-        title: { type: 'string', example: 'Sprint 1' },
+        name: { type: 'string', example: 'Sprint 1' },
         status: { type: 'string', enum: [...SPRINT_STATUS_VALUES], example: 'IN_PROGRESS' },
         startDate: { type: 'string', format: 'date-time', nullable: true },
         endDate: { type: 'string', format: 'date-time', nullable: true },

@@ -41,7 +41,11 @@ export class CardsService {
             },
         });
 
-        return cards.map((c) => ({ ...c, key: `VEASLY-${c.id}` }));
+        return cards.map(({ workflow, ...c }) => ({
+            ...c,
+            status: workflow.title,
+            key: `VEASLY-${c.id}`,
+        }));
     }
 
     async findOne(id: number) {
@@ -72,7 +76,8 @@ export class CardsService {
             throw new NotFoundException(`card id ${id} not found`);
         }
 
-        return { ...card, key: `VEASLY-${card.id}` };
+        const { workflow, ...rest } = card;
+        return { ...rest, status: workflow.title, key: `VEASLY-${card.id}` };
     }
 
     async create(dto: CreateCardDto) {

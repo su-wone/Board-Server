@@ -32,14 +32,6 @@ const labelSchema = {
     },
 };
 
-const workflowRefSchema = {
-    type: 'object',
-    properties: {
-        id: { type: 'number', example: 1 },
-        title: { type: 'string', example: 'To Do' },
-    },
-};
-
 const epicRefSchema = {
     type: 'object',
     nullable: true,
@@ -66,7 +58,7 @@ const cardSummarySchema = {
         assignee: userRefSchema,
         reporter: userRefSchema,
         labels: { type: 'array', items: labelSchema },
-        workflow: workflowRefSchema,
+        status: { type: 'string', example: 'TO DO' },
         epic: epicRefSchema,
         key: { type: 'string', example: 'VEASLY-101' },
     },
