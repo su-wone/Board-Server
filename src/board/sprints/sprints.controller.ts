@@ -6,9 +6,10 @@ import {
     ApiParam,
     ApiTags,
 } from '@nestjs/swagger';
+import { SprintStatus } from '../../../generated/prisma/client.js';
 import { SprintsService } from './sprints.service.js';
 
-const SPRINT_STATUS_VALUES = ['PLANNED', 'IN_PROGRESS', 'DONE'] as const;
+const SPRINT_STATUS_VALUES = Object.values(SprintStatus);
 
 const sprintSchema = {
     type: 'object',

@@ -7,12 +7,13 @@ import {
     ApiParam,
     ApiTags,
 } from '@nestjs/swagger';
+import { CardType } from '../../../generated/prisma/client.js';
 import { CardsService } from './cards.service.js';
 import { CardsFilterDto } from './dto/cards-filter.dto.js';
-import { CreateCardDto } from './dto/create-card.dto.js';
+import { CARD_PRIORITIES, CreateCardDto } from './dto/create-card.dto.js';
 
-const CARD_TYPE_VALUES = ['EPIC', 'STORY', 'TASK', 'SUB_TASK', 'BUG'] as const;
-const CARD_PRIORITY_VALUES = ['LOW', 'MEDIUM', 'HIGH'] as const;
+const CARD_TYPE_VALUES = Object.values(CardType);
+const CARD_PRIORITY_VALUES = [...CARD_PRIORITIES];
 
 const userRefSchema = {
     type: 'object',

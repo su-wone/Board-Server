@@ -135,7 +135,7 @@ async function main() {
                 type: seed.type,
                 priority: seed.priority,
                 order: nextOrder,
-                epicId: seed.epicId ?? null,
+                epicId: seed.epicId,
             },
         });
     }

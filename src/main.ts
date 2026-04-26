@@ -22,14 +22,12 @@ async function bootstrap() {
     }),
   );
 
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
   const config = new DocumentBuilder()
     .setTitle('Board API')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
-  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
 
   await app.listen(process.env.PORT ?? 3000);
 }

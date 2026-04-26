@@ -14,6 +14,10 @@ const SPRINT_SELECT = {
     },
 } as const;
 
+function toSprintResponse({ _count, title, ...sprint }: { _count: { cards: number }; title: string;[k: string]: unknown }) {
+    return { ...sprint, name: title, cardCount: _count.cards };
+}
+
 @Injectable()
 export class SprintsService {
     constructor(private prisma: PrismaService) { }
@@ -25,11 +29,7 @@ export class SprintsService {
             select: SPRINT_SELECT,
         });
 
-        return sprints.map(({ _count, title, ...sprint }) => ({
-            ...sprint,
-            name: title,
-            cardCount: _count.cards,
-        }));
+        return sprints.map(toSprintResponse);
     }
 
     async findOne(id: number) {
@@ -42,7 +42,6 @@ export class SprintsService {
             throw new NotFoundException('스프린트를 찾을 수 없습니다');
         }
 
-        const { _count, title, ...rest } = sprint;
-        return { ...rest, name: title, cardCount: _count.cards };
+        return toSprintResponse(sprint);
     }
 }

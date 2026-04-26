@@ -4,6 +4,28 @@ import { CreateCardDto } from './dto/create-card.dto.js';
 import { CardsFilterDto } from './dto/cards-filter.dto.js';
 import { Prisma } from '../../../generated/prisma/client.js';
 
+const CARD_SELECT = {
+    id: true,
+    title: true,
+    type: true,
+    priority: true,
+    workflowId: true,
+    sprintId: true,
+    description: true,
+    dueDate: true,
+    storyPoint: true,
+    order: true,
+    assignee: { select: { id: true, name: true } },
+    reporter: { select: { id: true, name: true } },
+    labels: { select: { id: true, name: true, color: true } },
+    workflow: { select: { id: true, title: true } },
+    epic: { select: { id: true, name: true, color: true } },
+} as const;
+
+function toCardResponse({ workflow, ...card }: { workflow: { title: string }; id: number;[k: string]: unknown }) {
+    return { ...card, status: workflow.title, key: `VEASLY-${card.id}` };
+}
+
 @Injectable()
 export class CardsService {
     constructor(private prisma: PrismaService) { }
@@ -22,51 +44,17 @@ export class CardsService {
         const cards = await this.prisma.cards.findMany({
             where,
             orderBy: [{ workflowId: 'asc' }, { order: 'asc' }],
-            select: {
-                id: true,
-                title: true,
-                type: true,
-                priority: true,
-                workflowId: true,
-                sprintId: true,
-                description: true,
-                dueDate: true,
-                storyPoint: true,
-                order: true,
-                assignee: { select: { id: true, name: true } },
-                reporter: { select: { id: true, name: true } },
-                labels: { select: { id: true, name: true, color: true } },
-                workflow: { select: { id: true, title: true } },
-                epic: { select: { id: true, name: true, color: true } },
-            },
+            select: CARD_SELECT,
         });
 
-        return cards.map(({ workflow, ...c }) => ({
-            ...c,
-            status: workflow.title,
-            key: `VEASLY-${c.id}`,
-        }));
+        return cards.map(toCardResponse);
     }
 
     async findOne(id: number) {
         const card = await this.prisma.cards.findFirst({
             where: { id, deletedAt: null },
             select: {
-                id: true,
-                title: true,
-                type: true,
-                priority: true,
-                workflowId: true,
-                sprintId: true,
-                description: true,
-                dueDate: true,
-                storyPoint: true,
-                order: true,
-                assignee: { select: { id: true, name: true } },
-                reporter: { select: { id: true, name: true } },
-                labels: { select: { id: true, name: true, color: true } },
-                workflow: { select: { id: true, title: true } },
-                epic: { select: { id: true, name: true, color: true } },
+                ...CARD_SELECT,
                 parent: { select: { id: true, title: true, type: true } },
                 children: { select: { id: true, title: true, type: true } },
             },
@@ -76,8 +64,7 @@ export class CardsService {
             throw new NotFoundException(`card id ${id} not found`);
         }
 
-        const { workflow, ...rest } = card;
-        return { ...rest, status: workflow.title, key: `VEASLY-${card.id}` };
+        return toCardResponse(card);
     }
 
     async create(dto: CreateCardDto) {
@@ -88,7 +75,7 @@ export class CardsService {
             throw new NotFoundException(`workflowId ${dto.workflowId} not found`);
         }
 
-        if (dto.sprintId !== null) {
+        if (dto.sprintId != null) {
             const sprint = await this.prisma.sprints.findFirst({
                 where: { id: dto.sprintId, deletedAt: null },
             });
@@ -122,7 +109,7 @@ export class CardsService {
                 workflowId: dto.workflowId,
                 sprintId: dto.sprintId,
                 type: dto.type,
-                priority: dto.priority ?? 'MEDIUM',
+                priority: dto.priority,
                 epicId: dto.epicId,
                 order: nextOrder,
             },
